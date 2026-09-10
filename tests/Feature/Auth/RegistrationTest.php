@@ -44,5 +44,10 @@ test('new users can register', function () {
     $this->assertAuthenticated();
 
     $user = User::where('email', 'test@example.com')->first();
-    $response->assertRedirect(route('dashboard'));
+
+    expect($user->current_team_id)->toBeNull();
+    expect($user->teams)->toHaveCount(0);
+    $this->assertDatabaseCount('teams', 0);
+
+    $response->assertRedirect(route('teams.index'));
 });

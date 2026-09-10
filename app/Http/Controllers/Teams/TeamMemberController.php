@@ -41,12 +41,14 @@ class TeamMemberController extends Controller
 
         abort_if($team->owner()?->is($user), 403, __('The team owner cannot be removed.'));
 
+        $wasCurrentTeam = $user->isCurrentTeam($team);
+
         $team->memberships()
             ->where('user_id', $user->id)
             ->delete();
 
-        if ($user->isCurrentTeam($team)) {
-            $user->switchTeam($user->personalTeam());
+        if ($wasCurrentTeam) {
+            $user->switchToFallbackTeam();
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Member removed.')]);

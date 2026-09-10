@@ -220,6 +220,30 @@ test('team invitations can be declined by the invited user', function () {
     ]);
 });
 
+test('declining an invitation without a team redirects to the teams index', function () {
+    $owner = User::factory()->create();
+    $invitedUser = User::factory()->withoutTeam()->create(['email' => 'invited@example.com']);
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $invitation = TeamInvitation::factory()->create([
+        'team_id' => $team->id,
+        'email' => 'invited@example.com',
+        'invited_by' => $owner->id,
+    ]);
+
+    $response = $this
+        ->actingAs($invitedUser)
+        ->delete(route('invitations.decline', $invitation));
+
+    $response->assertRedirect(route('teams.index'));
+
+    $this->assertDatabaseMissing('team_invitations', [
+        'id' => $invitation->id,
+    ]);
+});
+
 test('team invitations cannot be declined by uninvited user', function () {
     $owner = User::factory()->create();
     $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);

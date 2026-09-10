@@ -83,3 +83,12 @@ test('correct password must be provided to delete account', function () {
 
     expect($user->fresh())->not->toBeNull();
 });
+
+test('users without a team can view the profile page', function () {
+    $user = User::factory()->withoutTeam()->create();
+
+    $this
+        ->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk();
+});

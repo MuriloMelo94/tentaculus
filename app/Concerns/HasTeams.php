@@ -67,16 +67,6 @@ trait HasTeams
     }
 
     /**
-     * Get the user's personal team.
-     */
-    public function personalTeam(): ?Team
-    {
-        return $this->teams()
-            ->where('is_personal', true)
-            ->first();
-    }
-
-    /**
      * Switch to the given team.
      */
     public function switchTeam(Team $team): bool
@@ -153,7 +143,6 @@ trait HasTeams
             id: $team->id,
             name: $team->name,
             slug: $team->slug,
-            isPersonal: $team->is_personal,
             role: $role?->value,
             roleLabel: $role?->label(),
             isCurrent: $this->isCurrentTeam($team),
@@ -184,6 +173,31 @@ trait HasTeams
             ->when($excluding, fn ($query) => $query->where('teams.id', '!=', $excluding->id))
             ->orderByRaw('LOWER(teams.name)')
             ->first();
+    }
+
+    /**
+     * Switch to another team the user belongs to, or clear the current team.
+     */
+    public function switchToFallbackTeam(?Team $excluding = null): void
+    {
+        $fallback = $this->fallbackTeam($excluding);
+
+        if ($fallback) {
+            $this->switchTeam($fallback);
+
+            return;
+        }
+
+        $this->clearCurrentTeam();
+    }
+
+    /**
+     * Clear the user's current team.
+     */
+    public function clearCurrentTeam(): void
+    {
+        $this->update(['current_team_id' => null]);
+        $this->setRelation('currentTeam', null);
     }
 
     /**

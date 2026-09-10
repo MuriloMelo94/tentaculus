@@ -89,6 +89,8 @@ class TeamInvitationController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation declined.')]);
 
-        return to_route('dashboard');
+        return $request->user()->currentTeam
+            ? to_route('dashboard')
+            : to_route('teams.index');
     }
 }

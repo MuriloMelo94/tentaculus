@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use WeakMap;
 
 /**
  * @extends Factory<User>
@@ -18,6 +19,13 @@ class UserFactory extends Factory
      * The current password being used by the factory.
      */
     protected static ?string $password;
+
+    /**
+     * Users that should not receive a team after creation.
+     *
+     * @var WeakMap<User, true>|null
+     */
+    protected static ?WeakMap $usersWithoutTeams = null;
 
     /**
      * Define the model's default state.
@@ -43,8 +51,12 @@ class UserFactory extends Factory
      */
     public function configure(): static
     {
-        return $this->afterCreating(function ($user) {
-            $team = Team::factory()->personal()->create([
+        return $this->afterCreating(function (User $user) {
+            if (self::usersWithoutTeams()->offsetExists($user)) {
+                return;
+            }
+
+            $team = Team::factory()->create([
                 'name' => $user->name."'s Team",
             ]);
 
@@ -54,6 +66,24 @@ class UserFactory extends Factory
 
             $user->switchTeam($team);
         });
+    }
+
+    /**
+     * Indicate that the user should not belong to a team.
+     */
+    public function withoutTeam(): static
+    {
+        return $this->afterMaking(function (User $user) {
+            self::usersWithoutTeams()[$user] = true;
+        });
+    }
+
+    /**
+     * @return WeakMap<User, true>
+     */
+    protected static function usersWithoutTeams(): WeakMap
+    {
+        return self::$usersWithoutTeams ??= new WeakMap;
     }
 
     /**

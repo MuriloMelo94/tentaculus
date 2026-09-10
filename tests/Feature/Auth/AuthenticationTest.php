@@ -49,6 +49,18 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard'));
 });
 
+test('users without a team are redirected to the teams index after login', function () {
+    $user = User::factory()->withoutTeam()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('teams.index'));
+});
+
 test('passkey login response redirects to the current team dashboard', function () {
     $user = User::factory()->create();
 
@@ -60,7 +72,21 @@ test('passkey login response redirects to the current team dashboard', function 
 
     $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
-    expect($jsonResponse->getData()->redirect)->toBe(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+    expect($jsonResponse->getData()->redirect)->toBe(route('dashboard', ['current_team' => $user->currentTeam->slug]));
+});
+
+test('passkey login response redirects to the teams index without a team', function () {
+    $user = User::factory()->withoutTeam()->create();
+
+    $request = Request::create(route('login', absolute: false), 'GET', server: [
+        'HTTP_ACCEPT' => 'application/json',
+    ]);
+    $request->setLaravelSession($this->app['session.store']);
+    $request->setUserResolver(fn () => $user);
+
+    $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
+
+    expect($jsonResponse->getData()->redirect)->toBe(route('teams.index'));
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

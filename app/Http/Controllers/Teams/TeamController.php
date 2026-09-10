@@ -9,6 +9,7 @@ use App\Http\Requests\Teams\DeleteTeamRequest;
 use App\Http\Requests\Teams\SaveTeamRequest;
 use App\Models\Membership;
 use App\Models\Team;
+use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ class TeamController extends Controller
 
         return Inertia::render('teams/Index', [
             'teams' => $user->toUserTeams(includeCurrent: true),
+            'pendingInvitations' => TeamInvitation::pendingPayloadFor($user),
         ]);
     }
 
@@ -55,7 +57,6 @@ class TeamController extends Controller
                 'id' => $team->id,
                 'name' => $team->name,
                 'slug' => $team->slug,
-                'isPersonal' => $team->is_personal,
             ],
             'members' => $team->members()->get()->map(function (User $member) {
                 /** @var Membership $membership */
@@ -125,17 +126,14 @@ class TeamController extends Controller
         Gate::authorize('leave', $team);
 
         $user = $request->user();
-
-        $fallbackTeam = $user->isCurrentTeam($team)
-            ? $user->fallbackTeam($team)
-            : null;
+        $wasCurrentTeam = $user->isCurrentTeam($team);
 
         $team->memberships()
             ->where('user_id', $user->id)
             ->delete();
 
-        if ($fallbackTeam) {
-            $user->switchTeam($fallbackTeam);
+        if ($wasCurrentTeam) {
+            $user->switchToFallbackTeam();
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('You left the team ":name"', ['name' => $team->name])]);
@@ -148,24 +146,14 @@ class TeamController extends Controller
      */
     public function destroy(DeleteTeamRequest $request, Team $team): RedirectResponse
     {
-        $user = $request->user();
-        $fallbackTeam = $user->isCurrentTeam($team)
-            ? $user->fallbackTeam($team)
-            : null;
-
-        DB::transaction(function () use ($user, $team) {
+        DB::transaction(function () use ($team) {
             User::where('current_team_id', $team->id)
-                ->where('id', '!=', $user->id)
-                ->each(fn (User $affectedUser) => $affectedUser->switchTeam($affectedUser->personalTeam()));
+                ->each(fn (User $affectedUser) => $affectedUser->switchToFallbackTeam($team));
 
             $team->invitations()->delete();
             $team->memberships()->delete();
             $team->delete();
         });
-
-        if ($fallbackTeam) {
-            $user->switchTeam($fallbackTeam);
-        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team deleted.')]);
 

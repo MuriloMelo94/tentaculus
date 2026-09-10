@@ -308,7 +308,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
 
         <!-- Danger Zone -->
         <div
-            v-if="permissions.canDeleteTeam && !team.isPersonal"
+            v-if="permissions.canDeleteTeam"
             class="space-y-6"
         >
             <Heading
@@ -360,7 +360,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
     />
 
     <DeleteTeamModal
-        v-if="permissions.canDeleteTeam && !team.isPersonal"
+        v-if="permissions.canDeleteTeam"
         :team="team"
         :open="deleteDialogOpen"
         @update:open="deleteDialogOpen = $event"
