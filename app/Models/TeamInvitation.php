@@ -104,9 +104,11 @@ class TeamInvitation extends Model
             ->with(['inviter', 'team'])
             ->whereRaw('LOWER(email) = ?', [strtolower($user->email)])
             ->whereNull('accepted_at')
-            ->where(fn (Builder $pending) => $pending
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>=', now()))
+            ->where(function (Builder $pending): void {
+                $pending
+                    ->whereNull('expires_at')
+                    ->orWhere('expires_at', '>=', now());
+            })
             ->latest();
     }
 
