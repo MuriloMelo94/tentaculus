@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Enums\TeamRole;
 use Database\Factories\TeamInvitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -87,6 +90,55 @@ class TeamInvitation extends Model
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * Scope pending invitations for the given user.
+     *
+     * @param  Builder<TeamInvitation>  $query
+     */
+    #[Scope]
+    protected function pendingFor(Builder $query, User $user): void
+    {
+        $query
+            ->with(['inviter', 'team'])
+            ->whereRaw('LOWER(email) = ?', [strtolower($user->email)])
+            ->whereNull('accepted_at')
+            ->where(function (Builder $pending): void {
+                $pending
+                    ->whereNull('expires_at')
+                    ->orWhere('expires_at', '>=', now());
+            })
+            ->latest();
+    }
+
+    /**
+     * Get pending invitations formatted for the dashboard and teams index.
+     *
+     * @return Collection<int, array{code: string, inviterName: string, team: array{name: string, slug: string}}>
+     */
+    public static function pendingPayloadFor(User $user): Collection
+    {
+        return static::query()
+            ->pendingFor($user)
+            ->get()
+            ->map(fn (self $invitation) => $invitation->toPendingInvitation())
+            ->values();
+    }
+
+    /**
+     * @return array{code: string, inviterName: string, team: array{name: string, slug: string}}
+     */
+    public function toPendingInvitation(): array
+    {
+        return [
+            'code' => $this->code,
+            'inviterName' => $this->inviter->name,
+            'team' => [
+                'name' => $this->team->name,
+                'slug' => $this->team->slug,
+            ],
+        ];
     }
 
     /**

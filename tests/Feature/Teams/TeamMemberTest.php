@@ -110,10 +110,10 @@ test('team member role cannot be set to owner', function () {
     expect($team->members()->where('user_id', $member->id)->first()->pivot->role->value)->toEqual(TeamRole::Member->value);
 });
 
-test('removed member current team is set to personal team', function () {
+test('removed member current team falls back to another team', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
-    $personalTeam = $member->personalTeam();
+    $originalTeam = $member->currentTeam;
     $team = Team::factory()->create();
 
     $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
@@ -125,5 +125,21 @@ test('removed member current team is set to personal team', function () {
         ->actingAs($owner)
         ->delete(route('teams.members.destroy', [$team, $member]));
 
-    expect($member->fresh()->current_team_id)->toEqual($personalTeam->id);
+    expect($member->fresh()->current_team_id)->toEqual($originalTeam->id);
+});
+
+test('removed member current team is cleared when they have no other team', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->withoutTeam()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $team->members()->attach($member, ['role' => TeamRole::Member->value]);
+    $member->switchTeam($team);
+
+    $this
+        ->actingAs($owner)
+        ->delete(route('teams.members.destroy', [$team, $member]));
+
+    expect($member->fresh()->current_team_id)->toBeNull();
 });

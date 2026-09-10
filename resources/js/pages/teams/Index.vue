@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import CreateTeamModal from '@/components/CreateTeamModal.vue';
 import Heading from '@/components/Heading.vue';
 import LeaveTeamModal from '@/components/LeaveTeamModal.vue';
-import { Badge } from '@/components/ui/badge';
+import PendingInvitationsModal from '@/components/PendingInvitationsModal.vue';
 import { Button } from '@/components/ui/button';
 import {
     Tooltip,
@@ -14,10 +14,11 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { edit, index } from '@/routes/teams';
-import type { Team } from '@/types';
+import type { DashboardInvitation, Team } from '@/types';
 
 type Props = {
     teams: Team[];
+    pendingInvitations?: DashboardInvitation[];
 };
 
 defineProps<Props>();
@@ -25,7 +26,7 @@ defineProps<Props>();
 const leaveTeamDialogOpen = ref(false);
 const teamLeaving = ref<Team | null>(null);
 
-const canLeaveTeam = (team: Team) => !team.isPersonal && team.role !== 'owner';
+const canLeaveTeam = (team: Team) => team.role !== 'owner';
 
 const openLeaveTeamDialog = (team: Team) => {
     teamLeaving.value = team;
@@ -48,6 +49,11 @@ defineOptions({
     <Head title="Teams" />
 
     <h1 class="sr-only">Teams</h1>
+
+    <PendingInvitationsModal
+        v-if="pendingInvitations && pendingInvitations.length > 0"
+        :invitations="pendingInvitations"
+    />
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-center justify-between">
@@ -75,9 +81,6 @@ defineOptions({
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-medium">{{ team.name }}</span>
-                            <Badge v-if="team.isPersonal" variant="secondary">
-                                Personal
-                            </Badge>
                         </div>
                         <span class="text-sm text-muted-foreground">
                             {{ team.roleLabel }}

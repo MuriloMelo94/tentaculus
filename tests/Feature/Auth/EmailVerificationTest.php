@@ -15,7 +15,7 @@ test('email verification screen can be rendered', function () {
 
 test('email can be verified', function () {
     $user = User::factory()->unverified()->create();
-    $team = $user->personalTeam();
+    $team = $user->currentTeam;
 
     Event::fake();
 
@@ -79,7 +79,7 @@ test('verified user is redirected to dashboard from verification prompt', functi
 
 test('already verified user visiting verification link is redirected without firing event again', function () {
     $user = User::factory()->create();
-    $team = $user->personalTeam();
+    $team = $user->currentTeam;
 
     Event::fake();
 
@@ -94,4 +94,22 @@ test('already verified user visiting verification link is redirected without fir
 
     Event::assertNotDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+});
+
+test('email verification without a team redirects to the teams index', function () {
+    $user = User::factory()->unverified()->withoutTeam()->create();
+
+    Event::fake();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $response = $this->actingAs($user)->get($verificationUrl);
+
+    Event::assertDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    $response->assertRedirect('/settings/teams?verified=1');
 });

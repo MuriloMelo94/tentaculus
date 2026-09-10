@@ -10,14 +10,14 @@ const tabs = [
     { value: 'system', Icon: Monitor, label: 'System' },
 ] as const;
 
-const props = defineProps<{
+defineProps<{
     labeled?: boolean;
 }>();
 </script>
 
 <template>
     <div
-        class="inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800 justify-center"
+        class="inline-flex justify-center gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
     >
         <button
             v-for="{ value, Icon, label } in tabs"
