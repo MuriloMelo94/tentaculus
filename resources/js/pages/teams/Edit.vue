@@ -307,10 +307,7 @@ const confirmCancelInvitation = (invitation: TeamInvitation) => {
         </div>
 
         <!-- Danger Zone -->
-        <div
-            v-if="permissions.canDeleteTeam"
-            class="space-y-6"
-        >
+        <div v-if="permissions.canDeleteTeam" class="space-y-6">
             <Heading
                 variant="small"
                 title="Delete team"

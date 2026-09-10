@@ -16,7 +16,6 @@ import {
 import UserInfo from '@/components/UserInfo.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import type { Team } from '@/types';
-import AppearanceTabs from './AppearanceTabs.vue';
 
 const page = usePage();
 const user = page.props.auth.user;
