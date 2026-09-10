@@ -94,6 +94,8 @@ class TeamInvitation extends Model
 
     /**
      * Scope pending invitations for the given user.
+     *
+     * @param  Builder<TeamInvitation>  $query
      */
     #[Scope]
     protected function pendingFor(Builder $query, User $user): void
