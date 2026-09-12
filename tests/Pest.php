@@ -1,5 +1,8 @@
 <?php
 
+use App\Actions\Teams\ProvisionTeamTenant;
+use App\Models\Team;
+use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,9 +26,8 @@ pest()->extend(TestCase::class)
 | Expectations
 |--------------------------------------------------------------------------
 |
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
+| When you're writing tests, you often need to check that values meet certain conditions. You
+| may even extend the Expectation API at any time.
 |
 */
 
@@ -44,7 +46,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function provisionTenant(Team $team): Tenant
 {
-    // ..
+    return app(ProvisionTeamTenant::class)->handle($team);
+}
+
+function tenantDatabaseExists(Team $team): bool
+{
+    $tenant = $team->tenant;
+
+    if ($tenant === null) {
+        return false;
+    }
+
+    return $tenant->database()->manager()->databaseExists($tenant->database()->getName());
 }

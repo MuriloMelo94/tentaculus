@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Carbon;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
  * @property int $id
@@ -21,6 +22,8 @@ use Illuminate\Support\Carbon;
 #[Fillable(['team_id', 'user_id', 'role'])]
 class Membership extends Pivot
 {
+    use CentralConnection;
+
     /**
      * The table associated with the model.
      *

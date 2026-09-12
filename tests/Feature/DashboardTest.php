@@ -16,7 +16,7 @@ test('guests are redirected to the login page', function () {
 
 test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
-    $team = $user->currentTeam;
+    provisionTenant($user->currentTeam);
 
     $response = $this
         ->actingAs($user)
@@ -37,6 +37,8 @@ test('dashboard includes pending invitations for the authenticated user', functi
         'email' => 'invited@example.com',
         'invited_by' => $owner->id,
     ]);
+
+    provisionTenant($invitedUser->currentTeam);
 
     $response = $this
         ->actingAs($invitedUser)
@@ -67,6 +69,8 @@ test('dashboard does not include accepted invitations', function () {
         'invited_by' => $owner->id,
     ]);
 
+    provisionTenant($invitedUser->currentTeam);
+
     $response = $this
         ->actingAs($invitedUser)
         ->get(route('dashboard'));
@@ -90,6 +94,8 @@ test('dashboard excludes expired invitations without deleting them', function ()
         'email' => 'invited@example.com',
         'invited_by' => $owner->id,
     ]);
+
+    provisionTenant($invitedUser->currentTeam);
 
     $response = $this
         ->actingAs($invitedUser)
@@ -118,6 +124,8 @@ test('dashboard does not include or delete other users invitations', function ()
         'email' => 'someone@example.com',
         'invited_by' => $owner->id,
     ]);
+
+    provisionTenant($invitedUser->currentTeam);
 
     $response = $this
         ->actingAs($invitedUser)

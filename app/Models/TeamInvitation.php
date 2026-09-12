@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
  * @property int $id
@@ -32,7 +33,7 @@ use Illuminate\Support\Str;
 class TeamInvitation extends Model
 {
     /** @use HasFactory<TeamInvitationFactory> */
-    use HasFactory;
+    use CentralConnection, HasFactory;
 
     /**
      * Bootstrap the model and its traits.
