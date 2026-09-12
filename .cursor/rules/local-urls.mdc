@@ -1,0 +1,18 @@
+---
+description: URLs locais usam http://localhost sem a porta 8000
+alwaysApply: true
+---
+
+# URLs locais
+
+O app local é servido em `http://localhost` (OrbStack na porta 80). Nunca acrescente `:8000`.
+
+Ignore `APP_URL` e `get-absolute-url` quando devolverem `localhost:8000`.
+
+```
+# certo
+http://localhost/joyjoy-cafe
+
+# errado
+http://localhost:8000/joyjoy-cafe
+```
