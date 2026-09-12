@@ -6,5 +6,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | --- | --- |
 | compose.yaml | .ai/rules/general.md |
 | app/Models/*.php | .ai/rules/models.md |
-| routes/web.php | .ai/rules/tenancy-routes.md |
-| app/Http/Middleware/*.php | .ai/rules/tenancy-routes.md |
+| routes/web.php, app/Http/Middleware/*.php | .ai/rules/tenancy-routes.md |
