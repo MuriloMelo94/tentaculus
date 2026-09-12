@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
  * @property int $id
@@ -24,12 +26,13 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, TeamInvitation> $invitations
  * @property-read Collection<int, Membership> $memberships
  * @property-read Collection<int, User> $members
+ * @property-read Tenant|null $tenant
  */
 #[Fillable(['name', 'slug'])]
 class Team extends Model
 {
     /** @use HasFactory<TeamFactory> */
-    use GeneratesUniqueTeamSlugs, HasFactory, SoftDeletes;
+    use CentralConnection, GeneratesUniqueTeamSlugs, HasFactory, SoftDeletes;
 
     /**
      * Bootstrap the model and its traits.
@@ -92,6 +95,16 @@ class Team extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(TeamInvitation::class);
+    }
+
+    /**
+     * Get the Stancl tenant for this team.
+     *
+     * @return HasOne<Tenant, $this>
+     */
+    public function tenant(): HasOne
+    {
+        return $this->hasOne(Tenant::class);
     }
 
     /**

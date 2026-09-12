@@ -146,6 +146,8 @@ class TeamController extends Controller
      */
     public function destroy(DeleteTeamRequest $request, Team $team): RedirectResponse
     {
+        $tenant = $team->tenant;
+
         DB::transaction(function () use ($team) {
             User::where('current_team_id', $team->id)
                 ->each(fn (User $affectedUser) => $affectedUser->switchToFallbackTeam($team));
@@ -154,6 +156,8 @@ class TeamController extends Controller
             $team->memberships()->delete();
             $team->delete();
         });
+
+        $tenant?->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team deleted.')]);
 

@@ -13,4 +13,9 @@ enum TeamPermission: string
 
     case CreateInvitation = 'invitation:create';
     case CancelInvitation = 'invitation:cancel';
+
+    case ManageTables = 'tables:manage';
+    case ManageReservations = 'reservations:manage';
+    case CheckInReservations = 'reservations:check-in';
+    case ViewHistory = 'history:view';
 }

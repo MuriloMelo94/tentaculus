@@ -1,5 +1,8 @@
 /.phpunit.cache
 /bootstrap/ssr
+/database/tenant*
+/database/testing_tenant*
+/testing
 /docs/specs
 /node_modules
 /public/build
